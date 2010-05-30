@@ -2,31 +2,61 @@
 
 """Tile components -- These are the fundamental components used form a layout."""
 
+try:
+	from collections import OrderedDict
+except ImportError:
+	from ordereddict import OrderedDict
+
+from pytiles.errors import TilesError
+
 class TileType(object):
 	"""A page component that can be evaluated to a string when ready to be displayed."""
-	def __init__(self, name, role=None, in_role=lambda role: True):
+	def __init__(self, name, resolver=None, renderer=None, role=None, in_role=lambda role: True):
 		"""Keyword arguments:
-		   role    -- Role which can be evaluated for rendering display permission.
-		   in_role -- Function to use to evaluate roles which must return a bool type,
-		              If no function supplied default will always return True.
+		   resolver -- Function that will resolve Tile Type into the current execution state.
+		   renderer -- Function that will render Tile Type to a string.
+		   role     -- Role which can be evaluated for rendering display permission.
+		   in_role  -- Function to use to evaluate roles which must return a bool type,
+		               If no function supplied default will always return True.
 		"""
 		self.name = name
+		self.resolver = resolver
+		self.renderer = renderer
 		self.role = role
 		# Alternative way to specify in role function. 
 		if 'tiles_in_role' in globals():
 			self.in_role = globals()['tiles_in_role']
 		else:
 			self.in_role = in_role
+	
+	def resolve(self, definition_context):
+		"""Resolve Tile Type component
+
+		Arguments:
+		definition_context -- Encapsulation of the current state of execution.
+		"""
+		if self.resolver is None:
+			definition_context.add_attribute(self)
+		else:
+			try:
+				self.resolver.resolve(self, definition_context)
+			except AttributeError:
+				raise NotImplementedError('Should have implemented a resolver')
 
 	def render(self):
-		"""Render Tile Type component, children must implement this method in their own way."""
-		raise NotImplementedError("Should have implemented this")
+		"""Render Tile Type component."""
+		try:
+			if self.can_render():
+				return self.renderer.render(self)
+		except AttributeError:
+			raise NotImplementedError("Should have implemented a renderer")
+		return ''
 
 	def can_render(self):
 		"""Returns a boolean value for permission given to render the component."""
 		in_role = self.in_role(self.role)
 		if type(in_role) is not bool:
-			raise Exception("Function '{0}' must return a boolean value.".format(self.in_role.__name__))
+			raise TilesError("Function '{0}' must return a boolean value.".format(self.in_role.__name__))
 		return in_role
 
 	def __repr__(self):
@@ -37,9 +67,9 @@ class TileType(object):
 
 class String(TileType):
 	"""A very simple single value page component."""
-	def __init__(self, name, value, role=None):
+	def __init__(self, name, value, **kwargs):
 		self.value = value
-		super(String, self).__init__(name, role)
+		super(String, self).__init__(name, **kwargs)
 	
 	def render(self):
 		if self.can_render():
@@ -48,14 +78,14 @@ class String(TileType):
 
 class List(TileType):
 	"""A collection of other Tile Types."""
-	def __init__(self, name, items=None, inherit=True, role=None):
+	def __init__(self, name, items=None, inherit=True, **kwargs):
 		"""Keyword arguments:
 		   items   -- Array of initial items.
 		   inherit -- Lets you know if it should inherit items on merge. (Default: True)
 		"""
 		self.items = items if items is not None else []
 		self.inherit = inherit
-		super(List, self).__init__(name, role)
+		super(List, self).__init__(name, **kwargs)
 	
 	def add(self, item, order = 'append'):
 		"""Add Item to list.
@@ -66,13 +96,18 @@ class List(TileType):
 		order -- order values can be 'append' or 'prepend', which will do excatly
 		         what you would expect (Default: append).
 		"""
-		if isinstance(item, List):
+		try:
 			item = item.items
+		except AttributeError:
+			item = [item]
 
 		self.items = {
 			'prepend': item + self.items,
 			 'append': self.items + item
 		}[order]
+	
+	def can_inherit(self):
+		return self.inherit
 	
 	def render(self):
 		"""Generate unordered list of items. (For LOLs)."""
@@ -86,8 +121,9 @@ class List(TileType):
 class Page(TileType):
 	"""Page component support in rendering of pages, it is responsible for
 	holding Attributes (rendered Tile Types)
-	which can later be used to fill the page."""
-	def __init__(self, name, page, view_type, role=None):
+	which can later be used to fill the page.
+	"""
+	def __init__(self, name, page, view_type, **kwargs):
 		"""Keyword arguments:
 		   page     -- File path to page
 		   viewtype -- View Type class instance
@@ -95,7 +131,7 @@ class Page(TileType):
 		self.page = page
 		self.view_type = view_type
 		self.attributes = {}
-		super(Page, self).__init__(name, role)
+		super(Page, self).__init__(name, **kwargs)
 	
 	def add_attributes(attributes):
 		"""Add attributes merges with present attributes."""
@@ -109,24 +145,35 @@ class Page(TileType):
 class Definition(TileType):
 	"""Encapsulates other Tile Types in for a complete template composition.
 	It can function as an abstract definition where no template is defined,
-	in which it will extend/or inherit other definitions."""
-	def __init__(self, name, processor_builder, extends=None, template=None, role=None):
+	in which it will extend/or inherit other definitions.
+	"""
+	def __init__(self, name, extends=None, template=None, **kwargs):
 		"""Keyword arguments:
-		   processor_builder -- Definition Processor Builder implementation
-		   extends           -- Definition Tile Type parent of this class
-		   template          -- Page Tile Type
+		   extends   -- Definition Tile Type parent of this class
+		   template  -- Page Tile Type
+		   resolver  -- Resolver (see pytiles.resolvers.DefinitionResolver)
+		   renderer  -- Renderer (see pytiles.renderers.DefinitionRenderer)
 		"""
-		self.processor_builder = processor_builder
 		self._parent = extends
 		self.template = template
-		self.attributes = {}
+		self._attributes = OrderedDict()
 		self._preparers = []
 		self.__resolved = False
-		super(Definition, self).__init__(name, role)
+		super(Definition, self).__init__(name, **kwargs)
+	
+	@property
+	def attributes(self):
+		"""Get Attributes."""
+		return self._attributes
+	
+	@attributes.setter
+	def attributes(self, attributes):
+		for name, attribute in attributes.items():
+			self.add_attribute(attribute, key=name)
 	
 	@property
 	def preparers(self):
-		"""View Preparers."""
+		"""Get Preparers."""
 		return self._preparers
 
 	def add_preparer(self, classpath):
@@ -144,6 +191,20 @@ class Definition(TileType):
 		"""Set definition to extend."""
 		self._parent = parent
 		self.__resolved = False
+	
+	def add_attribute(self, attribute, key=None):
+		"""Add attributes, attribute can be an instance of TileType,
+		or some other value as long as a key is given.
+
+		Keyword arguments:
+		key -- String key to store the attribute into.
+		"""
+		if isinstance(attribute, TileType):
+			key = attribute.name if key is None else key
+			self._attributes[key] = attribute
+		else:
+			key = key if key is not None else str(id(attribute))
+			self._attributes[key] = String(key, attribute)
 
 	def override_template(self, template, merge=True):
 		"""Keyword arguments:
@@ -160,11 +221,10 @@ class Definition(TileType):
 		"""Check if definition has any parents, therefore has been extended."""
 		return self._parent is not None
 	
-	def resolve(self):
-		"""Passes the Definition to a processor provided by the Processor Builder,
-		the expected result should be a definition that has been merged with it's
-		parents."""
-		self.processor_builder.processor.resolve(self)
+	def resolve(self, definition_context):
+		"""Passes the Definition to a resolver, the expected result should be a
+		definition that has been merged with it's parents."""
+		super(Definition, self).resolve(definition_context)
 
 		# All parent definitions should now be "merged" into
 		# this definition, parent no longer needed.
@@ -173,12 +233,10 @@ class Definition(TileType):
 		self.__resolved = True
 	
 	def render(self):
-		if self.can_render():
-			return self.processor_builder.processor.process(self)
-		return ''
+		"""Render Definition, if the definition has not been resolved, the
+		resolver will be called before rendering.
+		"""
+		if not self.__resolved:
+			self.resolve(self)
 
-def main():
-	pass
-
-if __name__ == '__main__':
-	main()
+		super(Definition, self).render()
