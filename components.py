@@ -11,6 +11,7 @@ from pytiles.errors import TilesError
 
 class TileType(object):
 	"""A page component that can be evaluated to a string when ready to be displayed."""
+
 	def __init__(self, name, resolver=None, renderer=None, role=None, in_role=lambda role: True):
 		"""Keyword arguments:
 		   resolver -- Function that will resolve Tile Type into the current execution state.
@@ -67,6 +68,7 @@ class TileType(object):
 
 class String(TileType):
 	"""A very simple single value page component."""
+
 	def __init__(self, name, value, **kwargs):
 		self.value = value
 		super(String, self).__init__(name, **kwargs)
@@ -78,6 +80,7 @@ class String(TileType):
 
 class List(TileType):
 	"""A collection of other Tile Types."""
+
 	def __init__(self, name, items=None, inherit=True, **kwargs):
 		"""Keyword arguments:
 		   items   -- Array of initial items.
@@ -123,23 +126,24 @@ class Page(TileType):
 	holding Attributes (rendered Tile Types)
 	which can later be used to fill the page.
 	"""
-	def __init__(self, name, page, view_type, **kwargs):
+
+	def __init__(self, name, resource, view_type, **kwargs):
 		"""Keyword arguments:
-		   page     -- File path to page
+		   resource -- Page resource (file path, stream, string, etc) 
 		   viewtype -- View Type class instance
 		"""
-		self.page = page
+		self.resource = resource
 		self.view_type = view_type
 		self.attributes = {}
 		super(Page, self).__init__(name, **kwargs)
 	
-	def add_attributes(attributes):
+	def add_attributes(self, attributes):
 		"""Add attributes merges with present attributes."""
 		self.attributes = dict(self.attributes, **attributes)
 	
 	def render(self):
 		if self.can_render():
-			return self.view_type.process(self.page, self.attributes)
+			return self.view_type.process(self.resource, self.attributes)
 		return ''
 
 class Definition(TileType):
@@ -147,6 +151,7 @@ class Definition(TileType):
 	It can function as an abstract definition where no template is defined,
 	in which it will extend/or inherit other definitions.
 	"""
+
 	def __init__(self, name, extends=None, template=None, **kwargs):
 		"""Keyword arguments:
 		   extends   -- Definition Tile Type parent of this class
@@ -156,30 +161,30 @@ class Definition(TileType):
 		"""
 		self._parent = extends
 		self.template = template
-		self._attributes = OrderedDict()
+		self.attributes = OrderedDict()
 		self._preparers = []
 		self.__resolved = False
 		super(Definition, self).__init__(name, **kwargs)
 	
-	@property
-	def attributes(self):
-		"""Get Attributes."""
-		return self._attributes
+	#@property
+	#def attributes(self):
+	#	"""Get Attributes."""
+	#	return self._attributes
 	
-	@attributes.setter
-	def attributes(self, attributes):
-		for name, attribute in attributes.items():
-			self.add_attribute(attribute, key=name)
+	#@attributes.setter
+	#def attributes(self, attributes):
+	#	for name, attribute in attributes.items():
+	#		self.add_attribute(attribute, key=name)
 	
 	@property
 	def preparers(self):
 		"""Get Preparers."""
 		return self._preparers
 
-	def add_preparer(self, classpath):
+	def add_preparer(self, view_preparer):
 		"""Add to View Preparers."""
-		if classpath not in self._preparers:
-			self._preparers.append(classpath)
+		#if view_preparer not in self._preparers:
+		self._preparers.append(classpath)
 	
 	@property
 	def extends(self):
@@ -201,10 +206,10 @@ class Definition(TileType):
 		"""
 		if isinstance(attribute, TileType):
 			key = attribute.name if key is None else key
-			self._attributes[key] = attribute
+			self.attributes[key] = attribute
 		else:
 			key = key if key is not None else str(id(attribute))
-			self._attributes[key] = String(key, attribute)
+			self.attributes[key] = String(key, attribute)
 
 	def override_template(self, template, merge=True):
 		"""Keyword arguments:
@@ -221,9 +226,12 @@ class Definition(TileType):
 		"""Check if definition has any parents, therefore has been extended."""
 		return self._parent is not None
 	
-	def resolve(self, definition_context):
+	def resolve(self, definition_context=None):
 		"""Passes the Definition to a resolver, the expected result should be a
 		definition that has been merged with it's parents."""
+
+		definition_context = self if definition_context is None else definition_context
+
 		super(Definition, self).resolve(definition_context)
 
 		# All parent definitions should now be "merged" into
@@ -239,4 +247,4 @@ class Definition(TileType):
 		if not self.__resolved:
 			self.resolve(self)
 
-		super(Definition, self).render()
+		return super(Definition, self).render()

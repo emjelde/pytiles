@@ -11,37 +11,42 @@ from pytiles.components import Page
 
 class ListResolver(object):
 	"""List Resolver"""
-	def resolve(list, definition_context):
+
+	def resolve(self, list, definition_context):
 		"""Resolves list into definition context by retriving an existing
 		list by name in the definition context attributes. If found the two
 		lists will be merged if the existing allows inheritance. Otherwise,
-		the list will be added, possibly overwriting the older list.
+		the list will be added if an existing list is not found.
 		"""
 		last = definition_context.attributes.get(list.name)
 
 		if last is not None and last.can_inherit():
-			last.add(list.items)
+			last.add(list)
 
 			# Inherit inheritance rules.
 			last.inherit = list.inherit
 
 			definition_context.add_attribute(last)
 
-		else:
+		elif last is None:
 			definition_context.add_attribute(list)
 
 class DefinitionResolver(object):
 	"""Definition Resolver"""
+
 	def __init__(self):
 		self.pages = OrderedDict()
 
 	def resolve(self, definition, definition_context):
 		"""Resolves definition into definition_context."""
 		for name, attribute in definition.attributes.items():
-			# Temporarily store Pages in an ordered dictionary then merge
-			# them later, that way we won't have to deal with the issue
-			# of processed pages occuring before all other attributes.
 			if isinstance(attribute, Page):
+				# Give Page definition_context's attributes
+				attribute.attributes = definition_context.attributes
+
+				# Temporarily store Pages in an ordered dictionary then merge
+				# them later, that way we won't have to deal with the issue
+				# of processed pages occuring before all other attributes.
 				self.pages[attribute.name] = attribute
 			else:
 				attribute.resolve(definition_context)
