@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import os
 import unittest
 from pytiles.components import Page
 from pytiles.views.python import PythonTemplate
@@ -40,9 +41,9 @@ class TestTileTypePage(unittest.TestCase):
 	
 	def test_page_render(self):
 		"""Test page render with View Types."""
-		
-		python_template_expected = 'resources/page_render_pythontemplate_expected.html'
-		python_template = 'resources/page_render_pythontemplate.html'
+		dir = os.path.dirname(__file__)
+		python_template_expected = os.path.join(dir, 'resources/page_render_pythontemplate_expected.html')
+		python_template = os.path.join(dir, 'resources/page_render_pythontemplate.html')
 		self.page_render(
 			open(python_template_expected).read(),
 			open(python_template).read(),

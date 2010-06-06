@@ -2,6 +2,7 @@
 
 from string import Template 
 from pytiles.views.viewtype import ViewType
+from pytiles.errors import TilesError
 
 class PythonTemplate(ViewType):
 	"""View Type using Python string Template class."""
@@ -11,4 +12,8 @@ class PythonTemplate(ViewType):
 		string and substituting attributes.
 		"""
 		template = Template(resource)
-		return template.substitute(attributes)
+
+		try:
+			return template.substitute(attributes)
+		except KeyError as err:
+			raise TilesError("Template is missing {0} key".format(err.message))

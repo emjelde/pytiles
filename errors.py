@@ -5,7 +5,7 @@ class TilesError(Exception):
 
 	Class constants:
 	FILE_NOT_FOUND     -- For files not found.
-	EMPTY_TEMPLATE     -- 
+	NO_TEMPLATE        -- 
 	NO_SUCH_PREPARER   --
 	NO_SUCH_DEFINITION --
 	"""

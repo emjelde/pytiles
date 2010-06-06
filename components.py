@@ -42,7 +42,7 @@ class TileType(object):
 			try:
 				self.resolver.resolve(self, definition_context)
 			except AttributeError:
-				raise NotImplementedError('Should have implemented a resolver')
+				raise NotImplementedError("Should have implemented a resolver for {0}".format(self.name))
 
 	def render(self):
 		"""Render Tile Type component."""
@@ -50,7 +50,7 @@ class TileType(object):
 			if self.can_render():
 				return self.renderer.render(self)
 		except AttributeError:
-			raise NotImplementedError("Should have implemented a renderer")
+			raise NotImplementedError("Should have implemented a renderer for {0}".format(self.name))
 		return ''
 
 	def can_render(self):
@@ -66,6 +66,7 @@ class TileType(object):
 	def __str__(self):
 		return self.render()
 
+
 class String(TileType):
 	"""A very simple single value page component."""
 
@@ -77,6 +78,7 @@ class String(TileType):
 		if self.can_render():
 			return self.value
 		return ''
+
 
 class List(TileType):
 	"""A collection of other Tile Types."""
@@ -121,6 +123,7 @@ class List(TileType):
 			return output + '</ul>'
 		return ''
 
+
 class Page(TileType):
 	"""Page component support in rendering of pages, it is responsible for
 	holding Attributes (rendered Tile Types)
@@ -146,6 +149,7 @@ class Page(TileType):
 			return self.view_type.process(self.resource, self.attributes)
 		return ''
 
+
 class Definition(TileType):
 	"""Encapsulates other Tile Types in for a complete template composition.
 	It can function as an abstract definition where no template is defined,
@@ -162,30 +166,10 @@ class Definition(TileType):
 		self._parent = extends
 		self.template = template
 		self.attributes = OrderedDict()
-		self._preparers = []
+		self.preparers = []
 		self.__resolved = False
 		super(Definition, self).__init__(name, **kwargs)
-	
-	#@property
-	#def attributes(self):
-	#	"""Get Attributes."""
-	#	return self._attributes
-	
-	#@attributes.setter
-	#def attributes(self, attributes):
-	#	for name, attribute in attributes.items():
-	#		self.add_attribute(attribute, key=name)
-	
-	@property
-	def preparers(self):
-		"""Get Preparers."""
-		return self._preparers
-
-	def add_preparer(self, view_preparer):
-		"""Add to View Preparers."""
-		#if view_preparer not in self._preparers:
-		self._preparers.append(classpath)
-	
+		
 	@property
 	def extends(self):
 		"""Parent definition."""
@@ -196,6 +180,10 @@ class Definition(TileType):
 		"""Set definition to extend."""
 		self._parent = parent
 		self.__resolved = False
+
+	def add_preparer(self, view_preparer):
+		"""Add to View Preparers."""
+		self.preparers.append(classpath)
 	
 	def add_attribute(self, attribute, key=None):
 		"""Add attributes, attribute can be an instance of TileType,

@@ -31,6 +31,7 @@ class ListResolver(object):
 		elif last is None:
 			definition_context.add_attribute(list)
 
+
 class DefinitionResolver(object):
 	"""Definition Resolver"""
 
@@ -47,7 +48,10 @@ class DefinitionResolver(object):
 				# Temporarily store Pages in an ordered dictionary then merge
 				# them later, that way we won't have to deal with the issue
 				# of processed pages occuring before all other attributes.
-				self.pages[attribute.name] = attribute
+				#
+				# The dictionary key is the object id because there can be 
+				# other pages pulled in that have the same name 
+				self.pages[str(id(attribute))] = attribute
 			else:
 				attribute.resolve(definition_context)
 		
@@ -67,5 +71,5 @@ class DefinitionResolver(object):
 			# Update attributes with Pages.
 			definition_context.attributes.update(self.pages)
 
-		# Clear temporary Page storage.
-		self.pages = OrderedDict()
+			# Clear temporary Page storage.
+			self.pages = OrderedDict()
