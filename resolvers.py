@@ -39,35 +39,48 @@ class DefinitionResolver(object):
 		self.pages = OrderedDict()
 
 	def resolve(self, definition, definition_context):
-		"""Resolves definition into definition_context."""
+		"""Resolves definition into definition_context. Attributes
+		are processed in the following order: Definition to resolve, it's
+		parents, etc. There is a special case for TileType.Page attributes,
+		these are queued and appended to the resolved definitions (This is
+		done to ensure the pages equally recieve all available attributes).
+		"""
+
+		is_root = definition.name == definition_context.name
+
 		for name, attribute in definition.attributes.items():
 			if isinstance(attribute, Page):
-				# Give Page definition_context's attributes
+				# Give Page definition_context's attributes.
 				attribute.attributes = definition_context.attributes
+
+				# The dictionary key is the object id because there can be
+				# other pages pulled in that have the same name.
+				# (For resolving lets hope it uses the attribute.name
+				# instead of the dict key)
+				name = name if is_root else str(id(attribute))
 
 				# Temporarily store Pages in an ordered dictionary then merge
 				# them later, that way we won't have to deal with the issue
 				# of processed pages occuring before all other attributes.
-				#
-				# The dictionary key is the object id because there can be 
-				# other pages pulled in that have the same name 
-				self.pages[str(id(attribute))] = attribute
+				self.pages[name] = attribute
 			else:
 				attribute.resolve(definition_context)
 		
-		for preparers in definition.preparers:
-			definition_context.add_preparer(preparers)
+		# Add view-preparers.
+		definition_context.preparers += definition.preparers 
 
+		# Inherit role.
 		if definition.role is not None and definition_context.role is None:
 			definition_context.role = definition.role
 
+		# Inherit template.
 		if definition.template is not None and definition_context.template is None:
 			definition_context.override_template(definition.template)
 
 		if definition.is_extended():
 			self.resolve(definition.extends, definition_context)
 
-		if definition.name == definition_context.name:
+		if is_root:
 			# Update attributes with Pages.
 			definition_context.attributes.update(self.pages)
 

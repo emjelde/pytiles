@@ -16,4 +16,4 @@ class PythonTemplate(ViewType):
 		try:
 			return template.substitute(attributes)
 		except KeyError as err:
-			raise TilesError("Template is missing {0} key".format(err.message))
+			raise TilesError("Template is missing {0} key".format(err))

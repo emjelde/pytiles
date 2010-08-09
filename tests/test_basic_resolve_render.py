@@ -5,6 +5,7 @@ from pytiles.components import Definition, Page, List, String
 from pytiles.resolvers import DefinitionResolver, ListResolver
 from pytiles.renderers import DefinitionRenderer
 from pytiles.views.python import PythonTemplate
+from pytiles.errors import TilesError
 
 class TestTileTypeResolveRender(unittest.TestCase):
 	"""Test standard TileType Resolvers and Renderers."""	
@@ -90,6 +91,32 @@ class TestTileTypeResolveRender(unittest.TestCase):
 		definition_c.add_attribute(Page('body', "Can I get a $say_what", PythonTemplate()))
 
 		result = str(definition_c)
+
+		print("Expected: {0}".format(expected))
+		print("     Got: {0}".format(result))
+		self.assertTrue(result == expected)
+	
+	def test_resolve_render_definition_as_template(self):
+		"""Test Definition Resolve/Render (Definition with Definition as a Template)."""
+
+		expected = "<html><body>Hello World</body></html>"
+
+		definition_resolver = DefinitionResolver()
+		definition_renderer = DefinitionRenderer()
+
+		# Template Definition
+		definition_template = Definition('def_template',
+			resolver=definition_resolver, renderer=definition_renderer,
+			template=Page('layout', "<html><body>$greeting $who</body></html>", PythonTemplate()))
+
+		definition_template.add_attribute('Hello', key='greeting')
+
+		definition = Definition('def', resolver=definition_resolver,
+			renderer=definition_renderer, template=definition_template)
+
+		definition.add_attribute('World', key='who')
+
+		result = str(definition)
 
 		print("Expected: {0}".format(expected))
 		print("     Got: {0}".format(result))

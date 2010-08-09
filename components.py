@@ -42,7 +42,10 @@ class TileType(object):
 			try:
 				self.resolver.resolve(self, definition_context)
 			except AttributeError:
-				raise NotImplementedError("Should have implemented a resolver for {0}".format(self.name))
+				if self.resolver is None:
+					raise NotImplementedError("Should have implemented a resolver for {0}".format(self.name))
+				else:
+					raise
 
 	def render(self):
 		"""Render Tile Type component."""
@@ -50,7 +53,10 @@ class TileType(object):
 			if self.can_render():
 				return self.renderer.render(self)
 		except AttributeError:
-			raise NotImplementedError("Should have implemented a renderer for {0}".format(self.name))
+			if self.renderer is None:
+				raise NotImplementedError("Should have implemented a renderer for {0}".format(self.name))
+			else:
+				raise
 		return ''
 
 	def can_render(self):

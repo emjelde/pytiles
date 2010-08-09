@@ -10,7 +10,7 @@ class TilesError(Exception):
 	NO_SUCH_DEFINITION --
 	"""
 	FILE_NOT_FOUND = 404
-	EMPTY_TEMPLATE = 001
+	EMPTY_TEMPLATE = 1
 
 	def __init__(self, value, code=None):
 		"""Keyword arguments:

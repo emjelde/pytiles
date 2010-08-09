@@ -13,21 +13,12 @@ class DefinitionRenderer:
 
 	def render(self, definition):
 		"""Render definition"""
+
 		# Merge external attributes.
-		if self.external_attributes is not None:
-			#definition.attributes = dict(self.external_attributes,
-			#	**definition.attributes)
-			### OR ###
-			for key, value in self.external_attributes.items():
-				# Adding here will also add it again later when
-				# processing attributes, how to fix?
-				definition.add_attribute(value, key=key)
-			### OR ###
-			#try:
-			#	definition.template.add_attributes(self.external_attributes)
-			#except AttributeError:
-			#	raise TilesError("Template was never set in {0} definition" \
-			#		.format(definition.name), code=TilesError.NO_TEMPLATE)
+		for key, value in self.external_attributes.items():
+			# Adding here will also add it again later when
+			# processing attributes, how to fix?
+			definition.add_attribute(value, key=key)
 
 		# Invoke any View Preparers.
 		for preparer in definition.preparers:
@@ -39,15 +30,20 @@ class DefinitionRenderer:
 			if rendition != '':
 				definition.add_attribute(rendition, key=attribute.name)
 
-		# Finally, add our attributes to the template
+		# Finally, add our attributes to the template.
 		try:
 			definition.template.add_attributes(definition.attributes)
 		except AttributeError:
-			definition.template.attributes = definition.attributes
+			# Try Definition given as a template.
+			for attribute in definition.attributes.values():
+				definition.template.add_attribute(attribute)
 
 		# Party time!
 		try:
 			return definition.template.render()
 		except AttributeError:
-			raise TilesError("Template was never set in {0} definition" \
-				.format(definition.name), code=TilesError.NO_TEMPLATE)
+			if definition.template is None:
+				raise TilesError("Template was never set in {0} definition" \
+					.format(definition.name), code=TilesError.NO_TEMPLATE)
+			else:
+				raise
