@@ -3,7 +3,7 @@
 import os
 import unittest
 from pytiles.components import Page
-from pytiles.views.python import PythonTemplate
+from pytiles.views.python import PythonTemplate, PythonString
 
 class TestTileTypePage(unittest.TestCase):
 	"""Test Tile Type Page."""
@@ -42,9 +42,19 @@ class TestTileTypePage(unittest.TestCase):
 	def test_page_render(self):
 		"""Test page render with View Types."""
 		dir = os.path.dirname(__file__)
+
+		# Test Python Template
 		python_template_expected = os.path.join(dir, 'resources/page_render_pythontemplate_expected.html')
 		python_template = os.path.join(dir, 'resources/page_render_pythontemplate.html')
 		self.page_render(
 			open(python_template_expected).read(),
 			open(python_template).read(),
 			PythonTemplate())
+
+		# Test Python String
+		python_string_expected = os.path.join(dir, 'resources/page_render_pythonstring_expected.html')
+		python_string = os.path.join(dir, 'resources/page_render_pythonstring.html')
+		self.page_render(
+			open(python_string_expected).read(),
+			open(python_string).read(),
+			PythonString())
