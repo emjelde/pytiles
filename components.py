@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 """Tile components -- These are the fundamental components used form a layout."""
 
 try:
@@ -234,11 +232,18 @@ class Definition(TileType):
 
 		self.__resolved = True
 	
-	def render(self):
+	def render(self, attributes=None):
 		"""Render Definition, if the definition has not been resolved, the
 		resolver will be called before rendering.
+
+		Keyword arguments:
+		attributes -- Extra attributes to add to the template.
 		"""
 		if not self.__resolved:
 			self.resolve(self)
+
+		if attributes is not None:
+			for key, value in attributes.items():
+				self.add_attribute(value, key=key)
 
 		return super(Definition, self).render()

@@ -1,8 +1,8 @@
-#!/usr/bin/python
+"""Test Page component."""
 
 import os
 import unittest
-from pytiles.components import Page
+from pytiles import Page
 from pytiles.views.python import PythonTemplate, PythonString
 
 class TestTileTypePage(unittest.TestCase):

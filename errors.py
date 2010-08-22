@@ -1,4 +1,4 @@
-#!/usr/bin/python
+"""PyTiles custom errors."""
 
 class TilesError(Exception):
 	"""Tiles Error

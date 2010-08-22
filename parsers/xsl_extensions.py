@@ -24,8 +24,6 @@ class DecideTileTypeExtElement(etree.XSLTExtension):
 	def execute(self, context, self_node, input_node, output_parent):
 		value = input_node.attrib['value']
 
-		# Regex matches if value starts with forward-slash or ends with
-		# a dot followed by one or many word characters.
 		if re.search('^\/|\.\w{1,}$', value):
 			output_parent.text = 'page'
 

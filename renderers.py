@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 """Component Renderers -- These help to render components."""
 
 from pytiles.errors import TilesError
@@ -8,12 +6,20 @@ class DefinitionRenderer:
 	"""Definition Renderer"""
 
 	def __init__(self, attributes=None):
+		"""Initialize DefinitionRenderer
+
+		Keyword arguments:
+		attributes -- Attributes to add to the template.
+		"""
 		self.external_attributes = attributes if \
 			attributes is not None else {}
 
 	def render(self, definition):
-		"""Render definition"""
+		"""Render definition
 
+		Keyword arguments:
+		attributes -- Extra attributes to add to the template.
+		"""
 		# Merge external attributes.
 		for key, value in self.external_attributes.items():
 			# Adding here will also add it again later when

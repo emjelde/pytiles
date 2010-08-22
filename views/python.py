@@ -1,4 +1,4 @@
-#!/usr/bin/python
+"""Python view types."""
 
 from string import Template 
 from pytiles.views.viewtype import ViewType

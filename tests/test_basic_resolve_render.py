@@ -1,4 +1,4 @@
-#!/usr/bin/python
+"""Test component resolution."""
 
 import unittest
 from pytiles.components import Definition, Page, List, String

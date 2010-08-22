@@ -1,4 +1,4 @@
-#!/usr/bin/python
+"""Test List component."""
 
 import unittest
 from pytiles.components import Definition, List

@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 """Component Resolvers -- These help to merge related components."""
 
 try:

@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 class ViewType(object):
 	"""Supports processing files by passing them and supplied attributes
 	to a special template processor or a custom implementation (format
