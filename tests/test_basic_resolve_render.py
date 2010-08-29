@@ -1,11 +1,11 @@
 """Test component resolution."""
 
 import unittest
-from pytiles.components import Definition, Page, List, String
+from pytiles import Definition, Page, List, String
 from pytiles.resolvers import DefinitionResolver, ListResolver
 from pytiles.renderers import DefinitionRenderer
 from pytiles.views.python import PythonTemplate
-from pytiles.errors import TilesError
+from pytiles import TilesError
 
 class TestTileTypeResolveRender(unittest.TestCase):
 	"""Test standard TileType Resolvers and Renderers."""	

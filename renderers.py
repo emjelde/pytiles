@@ -1,6 +1,6 @@
 """Component Renderers -- These help to render components."""
 
-from pytiles.errors import TilesError
+from pytiles import TilesError
 
 class DefinitionRenderer:
 	"""Definition Renderer"""

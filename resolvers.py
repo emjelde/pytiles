@@ -5,7 +5,7 @@ try:
 except ImportError:
 	from ordereddict import OrderedDict
 
-from pytiles.components import Page
+from pytiles import Page
 
 class ListResolver(object):
 	"""List Resolver"""

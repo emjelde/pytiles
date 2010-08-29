@@ -1,7 +1,7 @@
 """Test List component."""
 
 import unittest
-from pytiles.components import Definition, List
+from pytiles import Definition, List
 from pytiles.resolvers import ListResolver
 
 class TestTileTypeList(unittest.TestCase):
