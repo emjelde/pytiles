@@ -1,0 +1,17 @@
+pyTiles
+
+A template framework that will help create a consistent layout by defining page
+fragments which can be assembled into a complete page at runtime.
+
+This is not yet another template engine, pyTiles is a layer between your application
+code and template engine.
+
+Features
+
+* Template inheritance
+* Use your favorite template engine(s) (Yes, can be more than one)
+* Assign roles to templates and attributes to control visibility
+* Add view preparation functions to templates
+* Flexible configuration, customizable tiling types
+
+pyTiles is comparable to Apache Tiles.
