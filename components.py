@@ -48,7 +48,7 @@ class TileType(object):
     def render(self):
         """Render Tile Type component."""
         try:
-            if self.can_render():
+            if self.permit():
                 return self.renderer.render(self)
         except AttributeError:
             if self.renderer is None:
@@ -57,7 +57,7 @@ class TileType(object):
                 raise
         return ''
 
-    def can_render(self):
+    def permit(self):
         """Returns a boolean value for permission given to render the component."""
         in_role = self.in_role(self.role)
         if type(in_role) is not bool:
@@ -79,7 +79,7 @@ class String(TileType):
         super(String, self).__init__(name, **kwargs)
     
     def render(self):
-        if self.can_render():
+        if self.permit():
             return self.value
         return ''
 
@@ -149,7 +149,7 @@ class Page(TileType):
         self.attributes = dict(self.attributes, **attributes)
     
     def render(self):
-        if self.can_render():
+        if self.permit():
             return self.view_type.process(self.resource, self.attributes)
         return ''
 
